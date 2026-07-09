@@ -32,10 +32,15 @@ build/
 ### VS Code ###
 .vscode/
 
+### Claude Code ###
+.claude/
+
 **/Config.md
 
 #localfile
 upload
+data/
+plan.md
 
 
 /logs/

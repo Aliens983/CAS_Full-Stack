@@ -2,20 +2,41 @@
 .env
 
 # 后端
-CampusAppointmentSystem/target/
+CampusAppointmentSystem/**/target/
+CampusAppointmentSystem/**/*.iml
+CampusAppointmentSystem/.idea/
+CampusAppointmentSystem/.vscode/
+CampusAppointmentSystem/.claude/
+CampusAppointmentSystem/logs/
+CampusAppointmentSystem/uploads/
+CampusAppointmentSystem/docs/
+CampusAppointmentSystem/interact/
+CampusAppointmentSystem/data/
+CampusAppointmentSystem/plan.md
 *.class
 *.jar
 *.war
 *.log
 
+# 后端敏感配置
+CampusAppointmentSystem/**/application.yml
+CampusAppointmentSystem/**/application-local.yml
+CampusAppointmentSystem/**/application-prod.yml
+CampusAppointmentSystem/**/application-*.local.yml
+
 # 前端
-frontend/node_modules/
-frontend/dist/
-frontend/dist-ssr/
-frontend/*.local
+Frontend/node_modules/
+Frontend/dist/
+Frontend/dist-ssr/
+Frontend/*.local
+Frontend/.idea/
+Frontend/.vscode/
 
 # 上传文件
 uploads/
+
+# 项目文档（本地笔记）
+docs/
 
 # IDE
 .idea/
