@@ -1,0 +1,35 @@
+# 环境变量（含密钥，禁止提交）
+.env
+
+# 后端
+CampusAppointmentSystem/target/
+*.class
+*.jar
+*.war
+*.log
+
+# 前端
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/*.local
+
+# 上传文件
+uploads/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Docker
+docker-compose.override.yml
