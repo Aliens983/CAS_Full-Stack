@@ -1,15 +1,25 @@
 # ============================================================
 # 后端 Dockerfile — 多阶段构建
-# 阶段1: Maven 构建 (含所有模块依赖)
-# 阶段2: JRE 运行 (精简镜像)
+# 阶段1: Maven 编译
+# 阶段2: 运行时（复用同一基础镜像，避免额外拉取）
+#
+# 设计说明:
+#   eclipse-temurin 镜像在国内镜像站经常缺失，
+#   但 maven:3.9-eclipse-temurin-17 可用且内置 JDK 17。
+#   两个阶段使用同一基础镜像，Docker 只拉一次。
 # ============================================================
 
-# --- 构建阶段 ---
-FROM maven:3.9-eclipse-temurin-17 AS builder
+# --- 共享基础镜像 ---
+FROM maven:3.9-eclipse-temurin-17 AS base
+# 预置时间，子阶段继承
+ENV TZ=Asia/Shanghai
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
+# --- 构建阶段 ---
+FROM base AS builder
 WORKDIR /build
 
-# 1. 先复制 POM 文件（利用 Docker 缓存层）
+# 1. POM（利用 Docker 缓存）
 COPY pom.xml ./
 COPY cas-dependencies/pom.xml ./cas-dependencies/
 COPY cas-framework/pom.xml ./cas-framework/
@@ -26,10 +36,10 @@ COPY cas-module-appointment/pom.xml ./cas-module-appointment/
 COPY cas-thirdparty/pom.xml ./cas-thirdparty/
 COPY cas-server/pom.xml ./cas-server/
 
-# 2. 下载依赖（此层可被缓存直到 POM 变化）
+# 2. 下载依赖
 RUN mvn dependency:go-offline -B -DskipTests
 
-# 3. 复制源码
+# 3. 源码
 COPY cas-framework/ ./cas-framework/
 COPY cas-module-infra/ ./cas-module-infra/
 COPY cas-module-system/ ./cas-module-system/
@@ -37,27 +47,17 @@ COPY cas-module-appointment/ ./cas-module-appointment/
 COPY cas-thirdparty/ ./cas-thirdparty/
 COPY cas-server/ ./cas-server/
 
-# 4. 构建（跳过测试）
+# 4. 编译
 RUN mvn clean package -DskipTests -B
 
 # --- 运行阶段 ---
-FROM eclipse-temurin:17-jre-alpine
-
-# 设置时区
-RUN apk add --no-cache tzdata curl && \
-    cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
-    echo "Asia/Shanghai" > /etc/timezone && \
-    apk del tzdata
-
+FROM base AS runtime
 WORKDIR /app
 
-# 从构建阶段复制 JAR
 COPY --from=builder /build/cas-server/target/cas-server-*.jar app.jar
-
-# 创建上传目录
 RUN mkdir -p /app/uploads
 
 EXPOSE 18080
 
-# JVM 参数可通过 JAVA_OPTS 环境变量覆盖
+# JVM 可通过 JAVA_OPTS 环境变量调整
 ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS:--Xms256m -Xmx512m} -jar app.jar"]

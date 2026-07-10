@@ -125,7 +125,7 @@ services:
   # ==================== 前端 Nginx ====================
   frontend:
     build:
-      context: ./frontend
+      context: ./Frontend
       dockerfile: Dockerfile
     image: cas-frontend:1.0.0
     container_name: cas-frontend
